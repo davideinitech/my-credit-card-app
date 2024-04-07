@@ -11,9 +11,7 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   authorized: {
-
     initialRouteName: 'overview',
   }
 };
@@ -27,7 +25,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
 
   useEffect(() => {
@@ -40,17 +37,9 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  if (!loaded) { return null; }
 
-
-  if (!loaded) {
-    return null;
-  }
-
-
-
-  return (
-    <RootLayoutNav />
-  );
+  return (<RootLayoutNav />);
 }
 
 function RootLayoutNav() {
@@ -62,6 +51,10 @@ function RootLayoutNav() {
     console.log({ seg: segments, authenticated })
     if (segments.length === 0) {
 
+      return;
+    }
+    if (segments.length === 0) {
+      router.replace('/overview')
       return;
     }
     const isError = segments[0] === '(errors)';

@@ -42,7 +42,9 @@ export default function login() {
 }
 
 const styles = StyleSheet.create({
-  label: {},
+  label: {
+    fontSize: 18
+  },
   input: {
     width: 300,
     borderWidth: 1,

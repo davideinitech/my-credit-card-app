@@ -1,10 +1,10 @@
+import { AuthContext } from '@/components/AuthContext';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, router, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-
+import { PropsWithChildren, useEffect, useState } from 'react';
+import { getItem, setItem } from 'expo-secure-store';
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -12,7 +12,10 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '/(authorized)/overview',
+  authorized: {
+
+    initialRouteName: 'overview',
+  }
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -24,7 +27,9 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -35,15 +40,56 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+
+
   if (!loaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
+
+
+  return (
+    <RootLayoutNav />
+  );
 }
 
 function RootLayoutNav() {
+
+  const [authenticated, setAuthenticated] = useState(getItem('authenticated') === 'true')
+  const segments = useSegments();
+
+  useEffect(() => {
+    console.log({ seg: segments, authenticated })
+    if (segments.length === 0) {
+
+      return;
+    }
+    const isError = segments[0] === '(errors)';
+    if (isError) {
+      if (authenticated) {
+        if (segments[1] === '401') {
+          router.replace('/overview')
+        }
+      }
+      return
+    }
+    const isLoginPage = segments[0] === 'login' || segments[1] === 'login'
+    if (isLoginPage && authenticated) {
+      router.replace('/overview')
+    }
+    if (!isLoginPage && !authenticated) {
+      router.replace('/login')
+    }
+  }, [segments, authenticated])
   return (
-    <Stack />
+    <AuthContext.Provider value={{
+      authenticated: getItem('authenticated') === 'true',
+      setAuthenticated: (authenticated) => {
+        setAuthenticated(authenticated);
+        setItem('authenticated', `${authenticated}`)
+      }
+    }}>
+      <Stack />
+    </AuthContext.Provider>
   );
 }
